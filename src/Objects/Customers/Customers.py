@@ -50,7 +50,6 @@ class Customer:
             f"Nationality: {self.Nationalities}\n"
             f"Country of Residence: {self.CountryOfResidence}\n"
             f"Age: {self.Age}\n"
-            f"Education": {self.Educations}"
         )
 
     def get_riskAssessment(

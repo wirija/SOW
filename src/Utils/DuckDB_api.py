@@ -1,4 +1,5 @@
 import duckdb as dd
+import os
 
 
 class duckdb_conn:
@@ -8,8 +9,9 @@ class duckdb_conn:
         self,
         db_name=None,
     ):
+        self.dbName = self.DEFAULT_DDB if db_name is None else db_name
         self.conn = (
-            dd.connect(self.DEFAULT_DDB) if db_name is None else dd.connect(db_name)
+            dd.connect(self.dbName)
         )
         return
 
@@ -48,20 +50,50 @@ class duckdb_conn:
         return
 
 
+    def list_tables (
+        self,
+        schema = '',
+    ):
+        tables = self.conn.sql("""SHOW ALL TABLES;""").to_df()
+        return tables[ tables['database'] == self.dbName ] 
+
+
+
     def get_records(
         self,
         table_name,
-        limit = 0
+        limit = 0, 
+        columns = [],
+        csv = False,
+        csv_outfile = '',
+        csv_delim = '|',
+        csv_quote = '"',
+        csv_header = True,
+
     ):
-        sql = f"""SELECT * FROM {table_name} {"" if limit == 0 else "Limit " + str(int(limit))} """
-        return self.conn.sql(sql).to_df()
+        # if outfile is missing - assume it is just a record pull
+        if csv and (csv_outfile == '' or not os.access(csv_outfile, os.W_OK)):
+            csv = False
 
+        columns = (
+            ', '.join(f'"{col}"' for col in columns)
+            if columns
+            else '*'
+        )
 
+        sql = f"""SELECT {columns} FROM {table_name} {"" if limit == 0 else "Limit " + str(int(limit))} """
+        if csv:
+            sql = """COPY (""" + sql + f""" ) TO '{csv_outfile}' (HEADER = {str(csv_header).lower()}, DELIM = {csv_delim}, QUOTE = {csv_quote});"""
 
-    def run_sql(
+        result = self.conn.sql(sql)
+        self.conn.commit()
+        
+        return result.to_df() if csv == False else True
+
+    def execute_sql(
         self,
         sql,
     ):
-        result = self.conn.sql(sql)
+        self.conn.sql(sql)
         self.conn.commit()
-        return result.to_df() if "SELECT" in sql.upper() else ""
+        return True
