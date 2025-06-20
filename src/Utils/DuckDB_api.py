@@ -3,15 +3,18 @@ import os
 
 
 class duckdb_conn:
-    DEFAULT_DDB = r"data\duckdb\default.ddb"
-
+    DEFAULT_DDB = r"default.ddb"
+    DEFAULT_PATH = r"data\duckdb"
     def __init__(
         self,
-        db_name=None,
+        db_name=r"default.ddb",
+        db_path=r"data\duckdb"
     ):
-        self.dbName = self.DEFAULT_DDB if db_name is None else db_name
+        self.dbName = db_name
+        self.db_path = db_path
+        self.db_FullPath = os.path.join(db_path, db_name)
         self.conn = (
-            dd.connect(self.dbName)
+            dd.connect(self.db_FullPath)
         )
         return
 
@@ -55,7 +58,7 @@ class duckdb_conn:
         schema = '',
     ):
         tables = self.conn.sql("""SHOW ALL TABLES;""").to_df()
-        return tables[ tables['database'] == self.dbName ] 
+        return tables[ tables['database'] == self.db_FullPath ] 
 
 
 

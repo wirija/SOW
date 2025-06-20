@@ -26,6 +26,8 @@ import tempfile
 import grape
 from grape import Graph
 import pandas as pd
+import networkx as nx
+import csv
 
 PATH_ANALYSIS_DB = r".\data\duckdb"
 PATH_CONFIG_PATH = ""
@@ -35,10 +37,10 @@ class Commonalities:
 
     def __init__(
         self,
-        DBname="staging_customers",
+        db_name="staging_customers",
     ):
-        self.DBName = DBname
-        self.DBpath = os.path.join(PATH_ANALYSIS_DB, DBname)
+        self.db_name = db_name
+        self.db_path = os.path.join(PATH_ANALYSIS_DB, db_name)
 
         # Init Database
         self.db = duckdb_conn(PATH_ANALYSIS_DB)
@@ -46,13 +48,14 @@ class Commonalities:
         # Check if Database has table customer and transactions
         self.tables = self.db.list_tables()
 
-        self.graph_trx = None
+        self.graph_trx_networkx = None
+        self.graph_trx_grape = None
 
         # check tables
         req_tables = [const.TBL_CUST, const.TBL_TRX]
         for col in req_tables:
             if col not in self.tables["table_name"].values:
-                raise KeyError(f"Table name '{col}' missing from {self.DBName}")
+                raise KeyError(f"Table name '{col}' missing from {self.db_name}")
 
     def find_common_static_data(
         self,
@@ -61,7 +64,7 @@ class Commonalities:
         email=True,
     ):
         # Filter once for the relevant database
-        filtered = self.tables[self.tables["database"] == self.DBName]
+        filtered = self.tables[self.tables["database"] == self.db_name]
 
         # Required columns to check
         required_columns = ["ID"] + [
@@ -79,7 +82,7 @@ class Commonalities:
         # Check for missing columns
         for col in required_columns:
             if col not in filtered["column_name"].values:
-                raise KeyError(f"Column name '{col}' missing from {self.DBName}")
+                raise KeyError(f"Column name '{col}' missing from {self.db_name}")
 
         # SQL TO RUN
         sql = (
@@ -126,6 +129,8 @@ class Commonalities:
                                 cte_group."Static Data";
                     """
             self.db.execute_sql(sql)
+
+        
 
     def find_common_bene_payor(
         self,
@@ -226,7 +231,36 @@ class Commonalities:
                 replaceTable=True,
             )
 
-            self.graph_trx = graph
+            ##### NETWORK X ########
+            # Load node data
+            nodes_df = pd.read_csv(temp_nodes_file)
+
+            # Load edge data
+            edges_df = pd.read_csv(temp_edges_file)
+
+            # Create a graph
+            G = nx.Graph() # or nx.DiGraph() for a directed graph
+
+            # Add nodes from the DataFrame
+            # Assuming 'node_id' is the column containing node identifiers
+            with open(temp_nodes_file, mode='r', newline='', encoding='utf-8') as file:
+                csv_reader = csv.DictReader(file)
+                for row in csv_reader:
+                    node_id = row[const.COL_NODE]
+                    attributes = {f"Type: {row[const.COL_NODE]}"}# Get all other columns as attributes
+                    G.add_node(node_id, **attributes)
+
+            # Add edges from the DataFrame
+            # Assuming 'source', 'target', and 'weight' are the column names
+            with open(temp_nodes_file, mode='r', newline='', encoding='utf-8') as file:
+                csv_reader = csv.DictReader(file)
+                for row in csv_reader:
+                    source = row[const.COL_SOURCE]
+                    target = row[const.COL_SOURCE]
+                    G.add_edge(source, target)
+
+            self.graph_trx_networkx = G
+            self.graph_trx_grape = graph
 
     def _group_level_stats(
         self,
