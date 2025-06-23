@@ -5,7 +5,7 @@ import dash_cytoscape as cyto
 import networkx as nx
 
 # 1. Create a NetworkX graph
-G = nx.Graph()
+G = nx.DiGraph()
 
 # Add nodes with 'type' attributes
 G.add_nodes_from([
@@ -16,23 +16,22 @@ G.add_nodes_from([
     ('Charlie', {'type': 'Person', 'label': 'Charlie', 'size': 50, 'concentric': 2}),
     ('William', {'type': 'Person', 'label': 'William', 'size': 50, 'concentric': 2}),
     ('Tim', {'type': 'Person', 'label': 'Tim', 'size': 50, 'concentric': 2}),
-
-    ('+65 4xxx 1234', {'type': 'PhoneNumber', 'label': '+65 4xxx 1234', 'size': 50, 'concentric': 1}),
-    ('+65 9xxx 2232', {'type': 'PhoneNumber', 'label': '+65 9xxx 2232', 'size': 50, 'concentric': 1}),
-    ('Williamxx@gmxxl.com', {'type': 'Email', 'label': 'Williamxx@gmxxl.com', 'size': 50, 'concentric': 1}),
-    ('Alice@gmxxl.com', {'type': 'Email', 'label': 'Alice@gmxxl.com', 'size': 50, 'concentric': 1}),
+    ('CompanyC', {'type': 'Company', 'label': 'Company C', 'size': 50, 'concentric': 2}),
+    ('CompanyD', {'type': 'Company', 'label': 'Company D', 'size': 50, 'concentric': 2}),
+    ('CompanyE', {'type': 'Company', 'label': 'Company E', 'size': 50, 'concentric': 2}),
 ])
 
 # Add edges with 'relationship' attributes
 G.add_edges_from([
-    ('CompanyA', '+65 4xxx 1234', {'relationship': 'Contact Info'}),
-    ('CompanyB', '+65 4xxx 1234', {'relationship': 'Contact Info'}),
-    ('Bob', '+65 9xxx 2232', {'relationship': 'Contact Info'}),
-    ('Charlie', '+65 9xxx 2232', {'relationship': 'Contact Info'}),
-    ('William', 'Williamxx@gmxxl.com', {'relationship': 'Email Info'}),
-    ('CompanyA', 'Williamxx@gmxxl.com', {'relationship': 'Email Info'}),
-    ('Alice', 'Alice@gmxxl.com', {'relationship': 'Email Info'}),
-    ('Tim', 'Alice@gmxxl.com', {'relationship': 'Email Info'})
+    ('CompanyE', 'CompanyA', {'relationship': 'Transfers'}),
+    ('CompanyA', 'CompanyB', {'relationship': 'Transfers'}),
+    ('CompanyA', 'CompanyC', {'relationship': 'Transfers'}),
+    ('CompanyA', 'CompanyD', {'relationship': 'Transfers'}),
+    # ('CompanyA', 'William', {'relationship': 'Transfers'}),
+    ('Alice', 'CompanyE', {'relationship': 'Transfers'}),
+    ('Charlie', 'CompanyE', {'relationship': 'Transfers'}),
+    # ('Tim', 'CompanyE', {'relationship': 'Transfers'}),
+    # ('Bob', 'CompanyE', {'relationship': 'Transfers'}),
 ])
 
 # Convert NetworkX graph to Cytoscape.js elements format
@@ -46,6 +45,7 @@ def nx_to_cytoscape_elements(graph):
             'classes': data.get('type', '') # Use 'type' as a class for styling/filtering
         })
     for source, target, data in graph.edges(data=True):
+        # print (f"source ={source}, target = {target}")
         cy_elements.append({
             'data': {'source': str(source), 'target': str(target), 'label': data.get('relationship', ''), **data}, # Use str(source/target) for IDs
             'classes': data.get('relationship', '') # Use 'relationship' as a class for styling/filtering
@@ -180,7 +180,7 @@ app.layout = html.Div([
         id='cytoscape-graph',
         #layout={'name': 'cose'}, # Other options: 'grid', 'circle', 'concentric', 'breadthfirst', 'random', 'preset'
         layout={
-            'name': 'concentric',
+            'name': 'cose',
             # 'concentric': 'function(node){ return node.data("concentric"); }', # Tell it to use our custom level attribute
             # 'levelWidth': 70,
             # 'minNodeSpacing': 15,

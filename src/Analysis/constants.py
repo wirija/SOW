@@ -1,9 +1,18 @@
 # Database tables
-TBL_GROUPSTATIC = "results_customer_groups_static"
-TBL_GROUPTRX = "results_customer_groups_trx"
-TBL_GROUPSTATS = "results_group_stats"
-TBL_NODES = 'graph_Nodes'
-TBL_EDGES = 'graph_Edges'
+TBL_STAGING_CUSTOMER = '_staging_customer'
+TBL_STAGING_TRANSACTION = '_staging_transaction'
+
+TBL_STAGING_CUST_STATIC = '_staging_cust_static_data'
+TBL_STAGING_STATIC_NODES = "_staging_static_nodes"
+TBL_STAGING_STATIC_EDGES = "_staging_static_edges"
+
+TBL_STAGING_TRX_NODES = "_staging_cust_trx_nodes"
+TBL_STAGING_TRX_EDGES = "_staging_cust_trx_edges"
+
+TBL_RESULT_GROUP_STATIC = "_result_cust_group_static"
+TBL_RESULT_GROUP_TRX = "_result_group_trx"
+TBL_TRX_NODES = 'graph_trx_Nodes'
+TBL_TRX_EDGES = 'graph_trx_edges'
 TBL_CUST  = 'customers'
 TBL_TRX = 'transactions'
 
@@ -27,9 +36,14 @@ COL_FUND_IN_DAYS = 'fund in - days'
 COL_FUND_OUT_TOTAL = 'fund out - total'
 COL_FUND_OUT_DAYS = 'fund out - days'
 COL_ID = "ID"
+COL_GROUP_ID = "ID"
+COL_ACCOUNT_NUMBER = 'account number'
+COL_ACCOUNT_HOLDER = 'account holder'
 COL_CONTACT_NUMBER = 'contact number'
 COL_ADDRESS = "address"
 COL_EMAIL = "email"
+COL_STATIC_DATA = "static data"
+COL_STATIC_DATATYPE = "static data type"
 
 COL_SEP = "|"
 
@@ -37,10 +51,7 @@ COL_SEP = "|"
 SQL_GENERATE_NODES = (
 f"""
 CREATE OR REPLACE __RESULT_TABLE__ AS 
-SELECT DISTINCT __NODE1__ AS "{COL_NODE}", CONCAT(__NODE1_TYPE__, '|') AS "{COL_NODE_TYPE}"
-FROM __TABLE__
-UNION
-SELECT DISTINCT __NODE2__ AS "{COL_NODE}" ,  CONCAT(__NODE2_TYPE__, '|') AS "{COL_NODE_TYPE}"
+SELECT DISTINCT __NODE__ AS "{COL_NODE}", CONCAT(__NODE_TYPE__, '|') AS "{COL_NODE_TYPE}"
 FROM __TABLE__
 """
 )
