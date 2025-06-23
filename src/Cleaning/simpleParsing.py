@@ -16,10 +16,13 @@ def parse_email(text):
 
 
 def parse_contact_number(
-    text,
-    digits=6,
+    text:str,
+    digits:int=6,
 ):
-    contact_numbers = re.findall(r"(?:\+?\d){" + str(digits) + r",}", text)
+    text = text.translate(str.maketrans('', '', ' ()'))
+    
+    regrex_pattern = r"\+?\d{" + str(digits) +  r",}"
+    contact_numbers = re.findall(regrex_pattern, text)
 
     return [
         {

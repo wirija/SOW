@@ -28,5 +28,4 @@ def import_database(
     return 
 
 if __name__ == "__main__":
-    
-    return
+    print("Hello")
