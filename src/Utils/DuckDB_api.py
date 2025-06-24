@@ -5,6 +5,7 @@ import os
 class duckdb_conn:
     DEFAULT_DDB = r"default.ddb"
     DEFAULT_PATH = r"data\duckdb"
+    
     def __init__(
         self,
         db_name=r"default.ddb",
@@ -59,8 +60,7 @@ class duckdb_conn:
     ):
         tables = self.conn.sql("""SHOW ALL TABLES;""").to_df()
         return tables[ tables['database'] == self.db_FullPath ] 
-
-
+    
 
     def get_records(
         self,
@@ -92,6 +92,16 @@ class duckdb_conn:
         self.conn.commit()
         
         return result.to_df() if csv == False else True
+    
+
+    def create_table_class (
+      self,
+      cls      
+    ):
+        create_stt = SQLTableGenerator(cls)
+        self.execute_sql(create_stt)
+
+        
 
     def execute_sql(
         self,
@@ -100,3 +110,35 @@ class duckdb_conn:
         self.conn.sql(sql)
         self.conn.commit()
         return True
+
+
+
+class SQLTableGenerator:
+    python_to_sql = {
+        str: "VARCHAR(255)",
+        int: "INTEGER",
+        float: "REAL",
+        bool: "BOOLEAN",
+    }
+
+    def __init__(self, cls):
+        self.cls = cls
+        self.table_name = cls.__name__
+
+    def get_fields(self):
+        instance = self.cls()
+        return {
+            key: type(value)
+            for key, value in vars(instance).items()
+        }
+
+    def generate_create_table(self):
+        fields = self.get_fields()
+        sql_fields = []
+
+        for name, py_type in fields.items():
+            sql_type = self.python_to_sql.get(py_type, "TEXT")
+            sql_fields.append(f"    {name} {sql_type}")
+
+        fields_sql = ",\n".join(sql_fields)
+        return f"CREATE TABLE {self.table_name} (\n{fields_sql}\n);"
