@@ -129,8 +129,11 @@ class EmailAddress:
 class Address:
     def __init__ (self):
         self.Type = ''
-        self.Address = ''
-        self.Address_normalised = ''
+        self.Block = ''
+        self.StreetName = ''
+        self.StreetName_normalised = ''
+        self.Floor = ''
+        self.UnitNumber = ''
         self.Country = ''
         self.PostalCode = ''
         self.DateAdded = ''
@@ -141,8 +144,11 @@ class Address:
         return (
             f"Address Information:\n"
             f"Type: {self.Type}\n"
-            f"Address: {self.Address}\n"
-            f"Normalised Address: {self.Address_normalised}\n"
+            f"Block: {self.Block}"
+            f"Street Name: {self.StreetName}\n"
+            f"Normalised Street Name: {self.StreetName_normalised}\n"
+            f"Floor: {self.Floor}\n"
+            f"Unit Number: {self.UnitNumber}\n"
             f"Country: {self.Country}\n"
             f"Postal Code: {self.PostalCode}\n"
             f"Date Added: {self.DateAdded}\n"
